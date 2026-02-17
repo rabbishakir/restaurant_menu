@@ -26,7 +26,12 @@ export default async function MenuEditPage({ params }: Props) {
       </section>
 
       <MenuEditor
-        menu={{ id: menu.id, title: menu.title, status: menu.status }}
+        menu={{
+          id: menu.id,
+          title: menu.title,
+          status: menu.status,
+          backgroundImagePath: menu.backgroundImagePath,
+        }}
         initialItems={menu.menuItems}
       />
     </div>

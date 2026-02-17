@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="min-h-screen">
         <header className="bg-brand text-white">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex w-full flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="text-xl font-bold tracking-tight">
               Restaurant Menu Builder
             </Link>
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </nav>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">{children}</main>
+        <main className="w-full px-5 py-6">{children}</main>
       </body>
     </html>
   );

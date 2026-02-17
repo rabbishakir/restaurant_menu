@@ -10,6 +10,7 @@ type Params = {
 type UpdateMenuBody = {
   title?: string;
   status?: "DRAFT" | "PUBLISHED";
+  backgroundImagePath?: string | null;
 };
 
 export async function PATCH(req: Request, { params }: Params) {
@@ -17,6 +18,7 @@ export async function PATCH(req: Request, { params }: Params) {
     const body = (await req.json()) as UpdateMenuBody;
     const title = body.title?.trim();
     const status = body.status;
+    const backgroundImagePath = body.backgroundImagePath;
 
     if (title !== undefined && title.length === 0) {
       return NextResponse.json(
@@ -32,11 +34,23 @@ export async function PATCH(req: Request, { params }: Params) {
       );
     }
 
+    if (
+      backgroundImagePath !== undefined &&
+      backgroundImagePath !== null &&
+      !backgroundImagePath.startsWith("/uploads/")
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Invalid background image path." },
+        { status: 400 },
+      );
+    }
+
     const updated = await prisma.menu.update({
       where: { id: params.id },
       data: {
         ...(title !== undefined ? { title } : {}),
         ...(status !== undefined ? { status } : {}),
+        ...(backgroundImagePath !== undefined ? { backgroundImagePath } : {}),
       },
     });
 
