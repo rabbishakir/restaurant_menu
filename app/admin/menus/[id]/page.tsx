@@ -32,6 +32,17 @@ export default async function MenuEditPage({ params }: Props) {
           status: menu.status,
           titleFontSize: menu.titleFontSize,
           itemFontSize: menu.itemFontSize,
+          contentTopOffset: menu.contentTopOffset,
+          contentWidth: menu.contentWidth,
+          overlayOpacity: menu.overlayOpacity,
+          zelleImagePath: menu.zelleImagePath,
+          zelleX: menu.zelleX,
+          zelleY: menu.zelleY,
+          zelleWidth: menu.zelleWidth,
+          contactImagePath: menu.contactImagePath,
+          contactX: menu.contactX,
+          contactY: menu.contactY,
+          contactWidth: menu.contactWidth,
           backgroundImagePath: menu.backgroundImagePath,
         }}
         initialItems={menu.menuItems}

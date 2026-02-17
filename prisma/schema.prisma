@@ -22,6 +22,17 @@ model Menu {
   status              MenuStatus @default(DRAFT)
   titleFontSize       Int        @default(48)
   itemFontSize        Int        @default(18)
+  contentTopOffset    Int        @default(120)
+  contentWidth        Int        @default(700)
+  overlayOpacity      Int        @default(20)
+  zelleImagePath      String?
+  zelleX              Int        @default(50)
+  zelleY              Int        @default(50)
+  zelleWidth          Int        @default(120)
+  contactImagePath    String?
+  contactX            Int        @default(200)
+  contactY            Int        @default(50)
+  contactWidth        Int        @default(120)
   backgroundImagePath String?
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
