@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { MenuItem, MenuItemType, MenuStatus } from "@prisma/client";
 import { toPng } from "html-to-image";
 import { useState } from "react";
@@ -333,93 +334,121 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-6">
-        <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700" htmlFor="title">
-                Menu Title
-              </label>
-              <input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onBlur={handleTitleBlur}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
-              />
-              <p className="mt-1 text-xs text-slate-500">Title auto-saves when input loses focus.</p>
-            </div>
+    <div className="flex h-screen flex-col bg-gray-100">
+      <header className="h-14 border-b border-slate-200 bg-white px-6">
+        <div className="flex h-full items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/menus"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Back
+            </Link>
+            <p className="text-base font-semibold text-slate-900">{title || "New Menu"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportPng}
+            disabled={exportingImage}
+            className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {exportingImage ? "Exporting..." : "Export PNG"}
+          </button>
+        </div>
+      </header>
 
-            <div>
-              <p className="mb-1 block text-sm font-medium text-slate-700">Status</p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange("DRAFT")}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                    status === "DRAFT"
-                      ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  Draft
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange("PUBLISHED")}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                    status === "PUBLISHED"
-                      ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  Published
-                </button>
+      <main className="flex h-[calc(100vh-56px)] min-h-0">
+        <aside className="w-[400px] overflow-y-auto border-r border-slate-200 bg-white p-4">
+          <div className="space-y-6">
+            <section className="space-y-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Menu</h3>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600" htmlFor="title">
+                  Title
+                </label>
+                <input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onBlur={handleTitleBlur}
+                  className="w-full rounded-md border border-slate-300 px-2.5 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+                />
               </div>
-            </div>
-          </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Status</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange("DRAFT")}
+                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition ${
+                      status === "DRAFT"
+                        ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange("PUBLISHED")}
+                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition ${
+                      status === "PUBLISHED"
+                        ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    Published
+                  </button>
+                </div>
+              </div>
+            </section>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="title-size">
-                Title Font Size: {titleFontSize}px
-              </label>
-              <input
-                id="title-size"
-                type="range"
-                min={24}
-                max={80}
-                value={titleFontSize}
-                onChange={(e) => void handleTitleFontSizeChange(Number(e.target.value))}
-                className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
-              />
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="item-size">
-                Item Font Size: {itemFontSize}px
-              </label>
-              <input
-                id="item-size"
-                type="range"
-                min={12}
-                max={40}
-                value={itemFontSize}
-                onChange={(e) => void handleItemFontSizeChange(Number(e.target.value))}
-                className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
-              />
-            </div>
-          </div>
-
-          <section className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <h4 className="mb-3 text-sm font-semibold text-slate-800">Layout Settings</h4>
-            <div className="space-y-4">
+            <section className="space-y-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Typography</h3>
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700" htmlFor="content-top-offset">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="title-size">
+                    Title Size
+                  </label>
+                  <span className="text-xs font-semibold text-slate-700">{titleFontSize}px</span>
+                </div>
+                <input
+                  id="title-size"
+                  type="range"
+                  min={24}
+                  max={80}
+                  value={titleFontSize}
+                  onChange={(e) => void handleTitleFontSizeChange(Number(e.target.value))}
+                  className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="item-size">
+                    Item Size
+                  </label>
+                  <span className="text-xs font-semibold text-slate-700">{itemFontSize}px</span>
+                </div>
+                <input
+                  id="item-size"
+                  type="range"
+                  min={12}
+                  max={40}
+                  value={itemFontSize}
+                  onChange={(e) => void handleItemFontSizeChange(Number(e.target.value))}
+                  className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
+                />
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Layout Settings</h3>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="content-top-offset">
                     Vertical Position
                   </label>
-                  <span className="rounded-md bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
                     {contentTopOffset}px
                   </span>
                 </div>
@@ -433,13 +462,12 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                   className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
                 />
               </div>
-
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700" htmlFor="content-width">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="content-width">
                     Content Width
                   </label>
-                  <span className="rounded-md bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
                     {contentWidth}px
                   </span>
                 </div>
@@ -453,13 +481,12 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                   className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
                 />
               </div>
-
               <div>
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700" htmlFor="overlay-opacity">
+                  <label className="text-xs font-medium text-slate-600" htmlFor="overlay-opacity">
                     Overlay Opacity
                   </label>
-                  <span className="rounded-md bg-white px-2 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">
                     {overlayOpacity}%
                   </span>
                 </div>
@@ -473,196 +500,247 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                   className="h-2 w-full rounded-full bg-gray-200 accent-teal-600"
                 />
               </div>
-            </div>
-          </section>
-        </section>
+            </section>
 
-        <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <h3 className="text-lg font-semibold text-slate-900">Background Image</h3>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleBackgroundUpload}
-              className="block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-dark"
-            />
-            <button
-              type="button"
-              onClick={handleRemoveBackground}
-              disabled={!backgroundImagePath || uploadingImage}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              Remove
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            Supports JPG, PNG, and WEBP. The uploaded image is saved to /public/uploads.
-          </p>
-          {uploadingImage ? <p className="mt-2 text-sm text-slate-500">Uploading image...</p> : null}
-        </section>
+            <section className="space-y-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Images</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Background</label>
+                  {backgroundImagePath ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={backgroundImagePath}
+                        alt="Background"
+                        className="h-[80px] w-[80px] rounded-md object-cover ring-1 ring-slate-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveBackground}
+                        disabled={uploadingImage}
+                        className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
+                        aria-label="Remove Background"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        id="background-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleBackgroundUpload}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="background-upload"
+                        className="inline-flex cursor-pointer rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-dark"
+                      >
+                        Upload
+                      </label>
+                    </>
+                  )}
+                </div>
 
-        <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <h3 className="text-lg font-semibold text-slate-900">QR Images</h3>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Upload Zelle QR</label>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleQrImageUpload("zelle")}
-                className="block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-dark"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Upload Contact QR</label>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleQrImageUpload("contact")}
-                className="block w-full cursor-pointer rounded-md border border-slate-300 bg-white text-sm text-slate-700 file:mr-4 file:cursor-pointer file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-brand-dark"
-              />
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-slate-500">Drag QR images directly in preview to position them.</p>
-        </section>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Zelle QR</label>
+                  {zelleImagePath ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={zelleImagePath}
+                        alt="Zelle QR"
+                        className="h-[80px] w-[80px] rounded-md object-cover ring-1 ring-slate-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setZelleImagePath(null);
+                          await saveMenu({ zelleImagePath: null });
+                        }}
+                        className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow"
+                        aria-label="Remove Zelle QR"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        id="zelle-qr-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleQrImageUpload("zelle")}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="zelle-qr-upload"
+                        className="inline-flex cursor-pointer rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-dark"
+                      >
+                        Upload
+                      </label>
+                    </>
+                  )}
+                </div>
 
-        <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <h3 className="text-lg font-semibold text-slate-900">Menu Items</h3>
-          <form onSubmit={handleAddItem} className="mt-4 grid gap-3 sm:grid-cols-4">
-            <select
-              value={addType}
-              onChange={(e) => setAddType(e.target.value as MenuItemType)}
-              className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
-            >
-              <option value="ITEM">Item</option>
-              <option value="CATEGORY">Category</option>
-            </select>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={addType === "CATEGORY" ? "Category name" : "Item name"}
-              className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
-            />
-            {addType === "ITEM" ? (
-              <input
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="Price (e.g. $12.99)"
-                className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
-              />
-            ) : (
-              <div className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500">
-                Category rows have no price.
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Contact QR</label>
+                  {contactImagePath ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={contactImagePath}
+                        alt="Contact QR"
+                        className="h-[80px] w-[80px] rounded-md object-cover ring-1 ring-slate-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setContactImagePath(null);
+                          await saveMenu({ contactImagePath: null });
+                        }}
+                        className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow"
+                        aria-label="Remove Contact QR"
+                      >
+                        x
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        id="contact-qr-upload"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleQrImageUpload("contact")}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="contact-qr-upload"
+                        className="inline-flex cursor-pointer rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-dark"
+                      >
+                        Upload
+                      </label>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
-            <button
-              type="submit"
-              disabled={addingItem}
-              className="rounded-md bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {addingItem ? "Adding..." : addType === "CATEGORY" ? "+ Add Category" : "+ Add Item"}
-            </button>
-          </form>
+            </section>
 
-          {items.length === 0 ? (
-            <p className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600">
-              No items yet. Add your first item.
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200">
-              {items.map((item, index) => (
-                <li
-                  key={item.id}
-                  className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
+            <section className="space-y-3">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Items</h3>
+              <form onSubmit={handleAddItem} className="space-y-2">
+                <select
+                  value={addType}
+                  onChange={(e) => setAddType(e.target.value as MenuItemType)}
+                  className="w-full rounded-md border border-slate-300 px-2.5 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
                 >
-                  <div>
-                    {item.type === "CATEGORY" ? (
-                      <div className="flex items-center gap-2">
-                        <p className="text-base font-bold text-slate-900">{item.name}</p>
-                        <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">
-                          Category
-                        </span>
+                  <option value="ITEM">Item</option>
+                  <option value="CATEGORY">Category</option>
+                </select>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={addType === "CATEGORY" ? "Category name" : "Item name"}
+                  className="w-full rounded-md border border-slate-300 px-2.5 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+                />
+                {addType === "ITEM" ? (
+                  <input
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="Price"
+                    className="w-full rounded-md border border-slate-300 px-2.5 py-2 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+                  />
+                ) : null}
+                <button
+                  type="submit"
+                  disabled={addingItem}
+                  className="w-full rounded-md bg-brand px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {addingItem ? "Adding..." : addType === "CATEGORY" ? "+ Add Category" : "+ Add Item"}
+                </button>
+              </form>
+
+              <ul className="space-y-2">
+                {items.map((item, index) => (
+                  <li key={item.id} className="rounded-md border border-slate-200 p-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        {item.type === "CATEGORY" ? (
+                          <div className="flex items-center gap-1">
+                            <p className="truncate text-sm font-bold text-slate-900">{item.name}</p>
+                            <span className="rounded-full bg-teal-100 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700">
+                              Category
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="truncate text-sm font-medium text-slate-900">{item.name}</p>
+                            <p className="text-xs text-slate-600">{item.price}</p>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <p className="font-medium text-slate-900">{item.name}</p>
-                        <p className="text-sm text-slate-600">{item.price}</p>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleMoveItem(item.id, "up")}
-                      disabled={index === 0}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Up
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMoveItem(item.id, "down")}
-                      disabled={index === items.length - 1}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Down
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteItem(item.id)}
-                      className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveItem(item.id, "up")}
+                          disabled={index === 0}
+                          className="rounded border border-slate-300 px-1.5 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                        >
+                          Up
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveItem(item.id, "down")}
+                          disabled={index === items.length - 1}
+                          className="rounded border border-slate-300 px-1.5 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                        >
+                          Down
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700 hover:bg-red-100"
+                        >
+                          Del
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
 
-        {error ? (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
-        ) : null}
-        {savingMenu ? <p className="text-sm text-slate-500">Saving...</p> : null}
-      </div>
-
-      <aside className="space-y-4 lg:sticky lg:top-4 lg:h-fit">
-        <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-semibold text-slate-900">Live Preview</h3>
-            <button
-              type="button"
-              onClick={handleExportPng}
-              disabled={exportingImage}
-              className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportingImage ? "Exporting..." : "Export PNG"}
-            </button>
+            {error ? (
+              <p className="rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-700">{error}</p>
+            ) : null}
+            {savingMenu ? <p className="text-xs text-slate-500">Saving...</p> : null}
           </div>
+        </aside>
 
-          <MenuPreview
-            previewId={previewId}
-            title={title}
-            backgroundImagePath={backgroundImagePath}
-            items={items}
-            titleFontSize={titleFontSize}
-            itemFontSize={itemFontSize}
-            contentTopOffset={contentTopOffset}
-            contentWidth={contentWidth}
-            overlayOpacity={overlayOpacity}
-            zelleImagePath={zelleImagePath}
-            zelleX={zelleX}
-            zelleY={zelleY}
-            zelleWidth={zelleWidth}
-            contactImagePath={contactImagePath}
-            contactX={contactX}
-            contactY={contactY}
-            contactWidth={contactWidth}
-            onQrPositionCommit={handleQrPositionCommit}
-          />
+        <section className="flex flex-1 items-center justify-center bg-gray-200 p-6">
+          <div className="w-full max-w-5xl rounded-md shadow-2xl">
+            <MenuPreview
+              previewId={previewId}
+              title={title}
+              backgroundImagePath={backgroundImagePath}
+              items={items}
+              titleFontSize={titleFontSize}
+              itemFontSize={itemFontSize}
+              contentTopOffset={contentTopOffset}
+              contentWidth={contentWidth}
+              overlayOpacity={overlayOpacity}
+              zelleImagePath={zelleImagePath}
+              zelleX={zelleX}
+              zelleY={zelleY}
+              zelleWidth={zelleWidth}
+              contactImagePath={contactImagePath}
+              contactX={contactX}
+              contactY={contactY}
+              contactWidth={contactWidth}
+              onQrPositionCommit={handleQrPositionCommit}
+            />
+          </div>
         </section>
-      </aside>
+      </main>
     </div>
   );
 }
