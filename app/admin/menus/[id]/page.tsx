@@ -30,6 +30,8 @@ export default async function MenuEditPage({ params }: Props) {
           id: menu.id,
           title: menu.title,
           status: menu.status,
+          titleFontSize: menu.titleFontSize,
+          itemFontSize: menu.itemFontSize,
           backgroundImagePath: menu.backgroundImagePath,
         }}
         initialItems={menu.menuItems}

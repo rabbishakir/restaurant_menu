@@ -10,6 +10,7 @@ type Params = {
 type AddItemBody = {
   name?: string;
   price?: string;
+  type?: "ITEM" | "CATEGORY";
 };
 
 export async function POST(req: Request, { params }: Params) {
@@ -17,10 +18,18 @@ export async function POST(req: Request, { params }: Params) {
     const body = (await req.json()) as AddItemBody;
     const name = body.name?.trim();
     const price = body.price?.trim();
+    const type = body.type === "CATEGORY" ? "CATEGORY" : "ITEM";
 
-    if (!name || !price) {
+    if (!name) {
       return NextResponse.json(
-        { success: false, error: "Name and price are required." },
+        { success: false, error: "Name is required." },
+        { status: 400 },
+      );
+    }
+
+    if (type === "ITEM" && !price) {
+      return NextResponse.json(
+        { success: false, error: "Price is required for item type." },
         { status: 400 },
       );
     }
@@ -34,7 +43,8 @@ export async function POST(req: Request, { params }: Params) {
       data: {
         menuId: params.id,
         name,
-        price,
+        price: type === "CATEGORY" ? null : price,
+        type,
         position: (maxPosition._max.position ?? -1) + 1,
       },
     });

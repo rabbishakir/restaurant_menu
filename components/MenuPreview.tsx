@@ -6,8 +6,10 @@ import { useEffect, useMemo, useState } from "react";
 type MenuPreviewProps = {
   title: string;
   backgroundImagePath: string | null;
-  items: Pick<MenuItem, "id" | "name" | "price">[];
+  items: Pick<MenuItem, "id" | "name" | "price" | "type">[];
   previewId: string;
+  titleFontSize: number;
+  itemFontSize: number;
 };
 
 function splitIntoColumns<T>(array: T[]): [T[], T[]] {
@@ -20,6 +22,8 @@ export default function MenuPreview({
   backgroundImagePath,
   items,
   previewId,
+  titleFontSize,
+  itemFontSize,
 }: MenuPreviewProps) {
   const [textColor, setTextColor] = useState<"text-white" | "text-slate-900">("text-slate-900");
   const [shadowClass, setShadowClass] = useState("drop-shadow-sm");
@@ -105,24 +109,52 @@ export default function MenuPreview({
         <div
           className={`relative z-10 flex h-full flex-col px-[7%] pb-[7%] pt-[6%] ${shadowClass}`}
         >
-          <h1 className="text-center text-[clamp(26px,4.8vw,56px)] font-bold uppercase tracking-[0.08em]">
+          <h1
+            className="text-center font-bold uppercase tracking-[0.08em]"
+            style={{ fontSize: `${titleFontSize}px` }}
+          >
             {titleText}
           </h1>
-          <div className="mt-[5%] grid flex-1 grid-cols-2 gap-[4%] text-[clamp(14px,2.2vw,24px)] leading-relaxed">
+          <div
+            className="mt-[5%] grid flex-1 grid-cols-2 gap-[4%] leading-relaxed"
+            style={{ fontSize: `${itemFontSize}px` }}
+          >
             <div className="space-y-5">
               {leftItems.map((item) => (
-                <div key={item.id} className="flex items-end justify-between gap-4 border-b border-current/20 pb-1">
-                  <span className="font-medium">{item.name}</span>
-                  <span className="font-semibold">{item.price}</span>
-                </div>
+                item.type === "CATEGORY" ? (
+                  <div key={item.id} className="border-b border-current/25 pb-1">
+                    <span className="text-[1.08em] font-bold uppercase tracking-[0.03em]">
+                      {item.name}
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    key={item.id}
+                    className="flex items-end justify-between gap-4 border-b border-current/20 pb-1"
+                  >
+                    <span className="font-medium">{item.name}</span>
+                    <span className="font-semibold">{item.price}</span>
+                  </div>
+                )
               ))}
             </div>
             <div className="space-y-5">
               {rightItems.map((item) => (
-                <div key={item.id} className="flex items-end justify-between gap-4 border-b border-current/20 pb-1">
-                  <span className="font-medium">{item.name}</span>
-                  <span className="font-semibold">{item.price}</span>
-                </div>
+                item.type === "CATEGORY" ? (
+                  <div key={item.id} className="border-b border-current/25 pb-1">
+                    <span className="text-[1.08em] font-bold uppercase tracking-[0.03em]">
+                      {item.name}
+                    </span>
+                  </div>
+                ) : (
+                  <div
+                    key={item.id}
+                    className="flex items-end justify-between gap-4 border-b border-current/20 pb-1"
+                  >
+                    <span className="font-medium">{item.name}</span>
+                    <span className="font-semibold">{item.price}</span>
+                  </div>
+                )
               ))}
             </div>
           </div>

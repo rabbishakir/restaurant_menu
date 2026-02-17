@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `menuitem` ADD COLUMN `type` ENUM('ITEM', 'CATEGORY') NOT NULL DEFAULT 'ITEM',
+    MODIFY `price` VARCHAR(191) NULL;

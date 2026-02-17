@@ -11,6 +11,8 @@ type UpdateMenuBody = {
   title?: string;
   status?: "DRAFT" | "PUBLISHED";
   backgroundImagePath?: string | null;
+  titleFontSize?: number;
+  itemFontSize?: number;
 };
 
 export async function PATCH(req: Request, { params }: Params) {
@@ -19,6 +21,8 @@ export async function PATCH(req: Request, { params }: Params) {
     const title = body.title?.trim();
     const status = body.status;
     const backgroundImagePath = body.backgroundImagePath;
+    const titleFontSize = body.titleFontSize;
+    const itemFontSize = body.itemFontSize;
 
     if (title !== undefined && title.length === 0) {
       return NextResponse.json(
@@ -45,12 +49,28 @@ export async function PATCH(req: Request, { params }: Params) {
       );
     }
 
+    if (titleFontSize !== undefined && (titleFontSize < 24 || titleFontSize > 80)) {
+      return NextResponse.json(
+        { success: false, error: "Title font size must be between 24 and 80." },
+        { status: 400 },
+      );
+    }
+
+    if (itemFontSize !== undefined && (itemFontSize < 12 || itemFontSize > 40)) {
+      return NextResponse.json(
+        { success: false, error: "Item font size must be between 12 and 40." },
+        { status: 400 },
+      );
+    }
+
     const updated = await prisma.menu.update({
       where: { id: params.id },
       data: {
         ...(title !== undefined ? { title } : {}),
         ...(status !== undefined ? { status } : {}),
         ...(backgroundImagePath !== undefined ? { backgroundImagePath } : {}),
+        ...(titleFontSize !== undefined ? { titleFontSize } : {}),
+        ...(itemFontSize !== undefined ? { itemFontSize } : {}),
       },
     });
 

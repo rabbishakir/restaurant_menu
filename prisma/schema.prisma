@@ -11,10 +11,17 @@ enum MenuStatus {
   PUBLISHED
 }
 
+enum MenuItemType {
+  ITEM
+  CATEGORY
+}
+
 model Menu {
   id                  String     @id @default(cuid())
   title               String
   status              MenuStatus @default(DRAFT)
+  titleFontSize       Int        @default(48)
+  itemFontSize        Int        @default(18)
   backgroundImagePath String?
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
@@ -23,12 +30,13 @@ model Menu {
 }
 
 model MenuItem {
-  id       String @id @default(cuid())
+  id       String       @id @default(cuid())
   menuId   String
   name     String
-  price    String
-  position Int    @default(0)
-  menu     Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  price    String?
+  type     MenuItemType @default(ITEM)
+  position Int          @default(0)
+  menu     Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@index([menuId])
 }

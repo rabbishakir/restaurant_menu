@@ -1,6 +1,6 @@
 "use client";
 
-import type { MenuItem, MenuStatus } from "@prisma/client";
+import type { MenuItem, MenuItemType, MenuStatus } from "@prisma/client";
 import { toPng } from "html-to-image";
 import { useState } from "react";
 import MenuPreview from "../MenuPreview";
@@ -9,6 +9,8 @@ type EditorMenu = {
   id: string;
   title: string;
   status: MenuStatus;
+  titleFontSize: number;
+  itemFontSize: number;
   backgroundImagePath: string | null;
 };
 
@@ -20,10 +22,13 @@ type MenuEditorProps = {
 export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
   const [title, setTitle] = useState(menu.title);
   const [status, setStatus] = useState<MenuStatus>(menu.status);
+  const [titleFontSize, setTitleFontSize] = useState(menu.titleFontSize);
+  const [itemFontSize, setItemFontSize] = useState(menu.itemFontSize);
   const [backgroundImagePath, setBackgroundImagePath] = useState<string | null>(
     menu.backgroundImagePath,
   );
   const [items, setItems] = useState<MenuItem[]>(initialItems);
+  const [addType, setAddType] = useState<MenuItemType>("ITEM");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [savingMenu, setSavingMenu] = useState(false);
@@ -38,6 +43,8 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
     title?: string;
     status?: MenuStatus;
     backgroundImagePath?: string | null;
+    titleFontSize?: number;
+    itemFontSize?: number;
   }) => {
     setSavingMenu(true);
     setError("");
@@ -70,10 +77,24 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
     await saveMenu({ title: normalizedTitle });
   };
 
+  const handleTitleFontSizeChange = async (nextSize: number) => {
+    setTitleFontSize(nextSize);
+    await saveMenu({ titleFontSize: nextSize });
+  };
+
+  const handleItemFontSizeChange = async (nextSize: number) => {
+    setItemFontSize(nextSize);
+    await saveMenu({ itemFontSize: nextSize });
+  };
+
   const handleAddItem = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!name.trim() || !price.trim()) {
-      setError("Item name and price are required.");
+    if (!name.trim()) {
+      setError(addType === "CATEGORY" ? "Category name is required." : "Item name is required.");
+      return;
+    }
+    if (addType === "ITEM" && !price.trim()) {
+      setError("Item price is required.");
       return;
     }
 
@@ -83,7 +104,11 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
       const res = await fetch(`/api/menus/${menu.id}/items`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), price: price.trim() }),
+        body: JSON.stringify({
+          type: addType,
+          name: name.trim(),
+          price: addType === "CATEGORY" ? null : price.trim(),
+        }),
       });
 
       const body = (await res.json()) as { data?: MenuItem; error?: string };
@@ -94,6 +119,7 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
       setItems((current) => [...current, body.data as MenuItem].sort((a, b) => a.position - b.position));
       setName("");
       setPrice("");
+      setAddType("ITEM");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to add item.");
     } finally {
@@ -114,6 +140,26 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
       setItems((current) => current.filter((item) => item.id !== itemId));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to delete item.");
+    }
+  };
+
+  const handleMoveItem = async (itemId: string, direction: "up" | "down") => {
+    setError("");
+    try {
+      const res = await fetch(`/api/menus/${menu.id}/items/reorder`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, direction }),
+      });
+
+      const body = (await res.json()) as { data?: MenuItem[]; error?: string };
+      if (!res.ok || !body.data) {
+        throw new Error(body.error ?? "Failed to move item.");
+      }
+
+      setItems(body.data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to move item.");
     }
   };
 
@@ -227,6 +273,37 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
               </div>
             </div>
           </div>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="title-size">
+                Title Font Size: {titleFontSize}px
+              </label>
+              <input
+                id="title-size"
+                type="range"
+                min={24}
+                max={80}
+                value={titleFontSize}
+                onChange={(e) => void handleTitleFontSizeChange(Number(e.target.value))}
+                className="w-full accent-teal-600"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="item-size">
+                Item Font Size: {itemFontSize}px
+              </label>
+              <input
+                id="item-size"
+                type="range"
+                min={12}
+                max={40}
+                value={itemFontSize}
+                onChange={(e) => void handleItemFontSizeChange(Number(e.target.value))}
+                className="w-full accent-teal-600"
+              />
+            </div>
+          </div>
         </section>
 
         <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
@@ -255,25 +332,39 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
 
         <section className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200 sm:p-5">
           <h3 className="text-lg font-semibold text-slate-900">Menu Items</h3>
-          <form onSubmit={handleAddItem} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <form onSubmit={handleAddItem} className="mt-4 grid gap-3 sm:grid-cols-4">
+            <select
+              value={addType}
+              onChange={(e) => setAddType(e.target.value as MenuItemType)}
+              className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+            >
+              <option value="ITEM">Item</option>
+              <option value="CATEGORY">Category</option>
+            </select>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Item name"
+              placeholder={addType === "CATEGORY" ? "Category name" : "Item name"}
               className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
             />
-            <input
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="Price (e.g. $12.99)"
-              className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
-            />
+            {addType === "ITEM" ? (
+              <input
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="Price (e.g. $12.99)"
+                className="rounded-md border border-slate-300 px-3 py-2 outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+              />
+            ) : (
+              <div className="rounded-md border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500">
+                Category rows have no price.
+              </div>
+            )}
             <button
               type="submit"
               disabled={addingItem}
               className="rounded-md bg-brand px-4 py-2 font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {addingItem ? "Adding..." : "+ Add"}
+              {addingItem ? "Adding..." : addType === "CATEGORY" ? "+ Add Category" : "+ Add Item"}
             </button>
           </form>
 
@@ -283,15 +374,43 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <p className="font-medium text-slate-900">{item.name}</p>
-                    <p className="text-sm text-slate-600">{item.price}</p>
-                  </div>
+              {items.map((item, index) => (
+              <li
+                key={item.id}
+                className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  {item.type === "CATEGORY" ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-bold text-slate-900">{item.name}</p>
+                      <span className="rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">
+                        Category
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-medium text-slate-900">{item.name}</p>
+                      <p className="text-sm text-slate-600">{item.price}</p>
+                    </>
+                  )}
+                </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveItem(item.id, "up")}
+                      disabled={index === 0}
+                      className="rounded-md border border-slate-300 px-2 py-1 text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveItem(item.id, "down")}
+                      disabled={index === items.length - 1}
+                      className="rounded-md border border-slate-300 px-2 py-1 text-sm text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      ↓
+                    </button>
                   <button
                     type="button"
                     onClick={() => handleDeleteItem(item.id)}
@@ -299,6 +418,7 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                   >
                     Delete
                   </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -330,6 +450,8 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
             title={title}
             backgroundImagePath={backgroundImagePath}
             items={items}
+            titleFontSize={titleFontSize}
+            itemFontSize={itemFontSize}
           />
         </section>
       </aside>
