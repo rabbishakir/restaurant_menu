@@ -1,0 +1,21 @@
+I want to build a fullstack Next.js project for a Restaurant Menu Builder.
+Create all necessary boilerplate files and structure using Next.js App Router with TypeScript.
+The project should include:
+
+- A clean base layout page
+- A `/login` page placeholder
+- An `/admin` dashboard placeholder
+- A `/admin/menus` list page placeholder
+- A `/admin/menus/[id]` menu edit page placeholder
+- Install TypeScript types if needed
+- Basic routing with navigation links
+- Use minimal CSS (no UI library yet)
+
+Do not implement any backend logic yet — just create pages and navigation skeleton.
+
+Please generate:
+- Updated `package.json` with necessary scripts
+- `tsconfig.json`
+- `next.config.js` (if needed)
+- Basic UI components like Header or Navbar
+Go file-by-file with clear code.

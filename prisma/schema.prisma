@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum MenuStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Menu {
+  id                  String     @id @default(cuid())
+  title               String
+  status              MenuStatus @default(DRAFT)
+  backgroundImagePath String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  menuItems           MenuItem[]
+  qrCodes             QrCode[]
+}
+
+model MenuItem {
+  id       String @id @default(cuid())
+  menuId   String
+  name     String
+  price    String
+  position Int    @default(0)
+  menu     Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+}
+
+model QrCode {
+  id        String @id @default(cuid())
+  menuId    String
+  label     String
+  value     String
+  positionX Int    @default(50)
+  positionY Int    @default(50)
+  size      Int    @default(120)
+  menu      Menu   @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+}
