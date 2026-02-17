@@ -20,9 +20,9 @@ export default async function MenuEditPage({ params }: Props) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl bg-brand p-4 text-white sm:p-5">
+      <section className="rounded-xl bg-[#f1f1f1] p-4 text-slate-900 sm:p-5">
         <h2 className="text-xl font-semibold">Edit Menu</h2>
-        <p className="text-sm text-teal-50">Menu ID: {menu.id}</p>
+        <p className="text-sm text-slate-600">Menu ID: {menu.id}</p>
       </section>
 
       <MenuEditor

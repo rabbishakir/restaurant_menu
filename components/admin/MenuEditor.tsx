@@ -57,6 +57,9 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
   const [addType, setAddType] = useState<MenuItemType>("ITEM");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [editingPrice, setEditingPrice] = useState("");
   const [savingMenu, setSavingMenu] = useState(false);
   const [addingItem, setAddingItem] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -176,6 +179,55 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
       setError(e instanceof Error ? e.message : "Failed to add item.");
     } finally {
       setAddingItem(false);
+    }
+  };
+
+  const handleStartEditItem = (item: MenuItem) => {
+    setEditingItemId(item.id);
+    setEditingName(item.name);
+    setEditingPrice(item.price ?? "");
+    setError("");
+  };
+
+  const handleCancelEditItem = () => {
+    setEditingItemId(null);
+    setEditingName("");
+    setEditingPrice("");
+  };
+
+  const handleSaveEditItem = async (item: MenuItem) => {
+    if (!editingName.trim()) {
+      setError(item.type === "CATEGORY" ? "Category name is required." : "Item name is required.");
+      return;
+    }
+
+    if (item.type === "ITEM" && !editingPrice.trim()) {
+      setError("Item price is required.");
+      return;
+    }
+
+    setError("");
+    try {
+      const res = await fetch(`/api/menus/${menu.id}/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editingName.trim(),
+          price: item.type === "CATEGORY" ? null : editingPrice.trim(),
+        }),
+      });
+
+      const body = (await res.json()) as { data?: MenuItem; error?: string };
+      if (!res.ok || !body.data) {
+        throw new Error(body.error ?? "Failed to update item.");
+      }
+
+      setItems((current) =>
+        current.map((entry) => (entry.id === item.id ? (body.data as MenuItem) : entry)),
+      );
+      handleCancelEditItem();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update item.");
     }
   };
 
@@ -663,8 +715,25 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                 {items.map((item, index) => (
                   <li key={item.id} className="rounded-md border border-slate-200 p-2">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        {item.type === "CATEGORY" ? (
+                      <div className="min-w-0 flex-1">
+                        {editingItemId === item.id ? (
+                          <div className="space-y-2">
+                            <input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              placeholder={item.type === "CATEGORY" ? "Category name" : "Item name"}
+                              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+                            />
+                            {item.type === "ITEM" ? (
+                              <input
+                                value={editingPrice}
+                                onChange={(e) => setEditingPrice(e.target.value)}
+                                placeholder="Price"
+                                className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs outline-none transition focus:border-brand focus:ring-2 focus:ring-teal-200"
+                              />
+                            ) : null}
+                          </div>
+                        ) : item.type === "CATEGORY" ? (
                           <div className="flex items-center gap-1">
                             <p className="truncate text-sm font-bold text-slate-900">{item.name}</p>
                             <span className="rounded-full bg-teal-100 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700">
@@ -679,29 +748,81 @@ export default function MenuEditor({ menu, initialItems }: MenuEditorProps) {
                         )}
                       </div>
                       <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveItem(item.id, "up")}
-                          disabled={index === 0}
-                          className="rounded border border-slate-300 px-1.5 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-                        >
-                          Up
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveItem(item.id, "down")}
-                          disabled={index === items.length - 1}
-                          className="rounded border border-slate-300 px-1.5 py-0.5 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-                        >
-                          Down
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700 hover:bg-red-100"
-                        >
-                          Del
-                        </button>
+                        {editingItemId === item.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void handleSaveEditItem(item)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-emerald-300 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100"
+                              aria-label="Save item"
+                              title="Save"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="M7.8 14.6 3.9 10.8l1.4-1.4 2.5 2.5 6.9-6.9 1.4 1.4z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEditItem}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50"
+                              aria-label="Cancel edit"
+                              title="Cancel"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="m11.4 10 5.3-5.3-1.4-1.4-5.3 5.3-5.3-5.3-1.4 1.4L8.6 10l-5.3 5.3 1.4 1.4 5.3-5.3 5.3 5.3 1.4-1.4z" />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void handleMoveItem(item.id, "up")}
+                              disabled={index === 0}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
+                              aria-label="Move up"
+                              title="Move up"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="m10 4-6 7h4v5h4v-5h4z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleMoveItem(item.id, "down")}
+                              disabled={index === items.length - 1}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
+                              aria-label="Move down"
+                              title="Move down"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="M8 4v5H4l6 7 6-7h-4V4z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStartEditItem(item)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50"
+                              aria-label="Edit item"
+                              title="Edit"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="m13.7 2.3 4 4L7.1 16.9l-4.8.8.8-4.8zM3.9 16.1l2.1-.4-1.7-1.7z" />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="inline-flex h-7 w-7 items-center justify-center rounded border border-red-300 bg-red-50 text-red-700 transition hover:bg-red-100"
+                              aria-label="Delete item"
+                              title="Delete"
+                            >
+                              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
+                                <path d="M6 4h8l-.7 12H6.7zM8 2h4l1 1h3v2H4V3h3z" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </li>

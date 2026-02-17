@@ -5,19 +5,19 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   const isAuthenticated = Boolean(token);
 
-  if (req.nextUrl.pathname.startsWith("/admin") && !isAuthenticated) {
+  if ((req.nextUrl.pathname.startsWith("/admin") || req.nextUrl.pathname.startsWith("/dashboard")) && !isAuthenticated) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
   }
 
   if (req.nextUrl.pathname === "/login" && isAuthenticated) {
-    const adminUrl = new URL("/admin", req.url);
-    return NextResponse.redirect(adminUrl);
+    const dashboardUrl = new URL("/dashboard", req.url);
+    return NextResponse.redirect(dashboardUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/login"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/login"],
 };

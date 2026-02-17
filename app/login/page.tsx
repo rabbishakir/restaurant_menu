@@ -29,7 +29,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/admin");
+      router.push("/dashboard");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -39,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-2 py-8 sm:px-4">
+    <div className="flex min-h-screen items-center justify-center px-2 py-8 sm:px-4">
       <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
         <h1 className="text-2xl font-semibold text-slate-900">Admin Login</h1>
         <p className="mt-1 text-sm text-slate-600">Sign in to manage restaurant menus.</p>
